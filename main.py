@@ -1,6 +1,10 @@
 import flet as ft
+from flet.core.cupertino_button import CupertinoButton
 from alert import AlertManager
 from autonoleggio import Autonoleggio
+from automobile import Automobile
+from flet import Row
+
 
 FILE_AUTO = "automobili.csv"
 
@@ -38,6 +42,19 @@ def main(page: ft.Page):
     # Tutti i TextField per le info necessarie per aggiungere una nuova automobile (marca, modello, anno, contatore posti)
     # TODO
 
+
+
+    def minus_click(e):
+        if txt_number.value== "0":
+            pass
+        else:
+            txt_number.value = str(int(txt_number.value) - 1)
+        page.update()
+
+    def plus_click(e):
+        txt_number.value = str(int(txt_number.value) + 1)
+        page.update()
+
     # --- FUNZIONI APP ---
     def aggiorna_lista_auto():
         lista_auto.controls.clear()
@@ -59,14 +76,50 @@ def main(page: ft.Page):
 
     # Handlers per la gestione dei bottoni utili all'inserimento di una nuova auto
     # TODO
-
+    txt_marca = ft.TextField(label='inserire la marca')
+    txt_modello = ft.TextField(label='inserire la modello')
+    txt_auto = ft.TextField(label="inserire l' anno")
+    txt_number = ft.TextField(value="0", text_align="right",width=75)
     # --- EVENTI ---
     toggle_cambia_tema = ft.Switch(label="Tema scuro", value=True, on_change=cambia_tema)
     pulsante_conferma_responsabile = ft.ElevatedButton("Conferma", on_click=conferma_responsabile)
 
     # Bottoni per la gestione dell'inserimento di una nuova auto
     # TODO
+    icon_più=ft.IconButton(ft.Icons.REMOVE_CIRCLE_OUTLINE_OUTLINED,on_click=minus_click,icon_color="red")
+    icon_meno=ft.IconButton(ft.Icons.ADD_PHOTO_ALTERNATE,on_click=plus_click,icon_color="white")
+    ANNI=Row([icon_meno,txt_number,icon_più],alignment=ft.MainAxisAlignment.CENTER)
 
+
+    def aggiungi_auto(e):
+        try:
+            anno_int = int(txt_auto.value)
+            posti_int = int(txt_number.value)
+        except ValueError:
+            alert.show_alert("❌ ERRORE nell'inserimento dell'anno o dei posti")
+        if not txt_marca.value:
+                alert.show_alert("❌ Inserisci la marca")
+                return
+        if not txt_modello.value:
+                alert.show_alert("❌ Inserisci il modello")
+                return
+        try:
+                autonoleggio.aggiungi_automobile(txt_marca.value, txt_modello.value, anno_int, posti_int)
+
+                txt_marca.value = ""
+                txt_modello.value = ""
+                txt_auto.value = ""
+                txt_number.value = "0"
+                aggiorna_lista_auto()
+                page.update()
+        except Exception as e:
+            alert.show_alert(f"❌ {e}")
+            page.update()
+
+
+
+
+    button = CupertinoButton(text='Aggiungi',on_click=aggiungi_auto)
     # --- LAYOUT ---
     page.add(
         toggle_cambia_tema,
@@ -84,7 +137,12 @@ def main(page: ft.Page):
 
         # Sezione 3
         # TODO
-
+        ft.Divider(),
+        ft.Text("Aggiungi nuova auto", size=10),
+        ft.Row(spacing=10,
+               controls=[txt_marca,txt_modello,txt_auto,ANNI],
+               alignment=ft.MainAxisAlignment.CENTER),
+        button,
         # Sezione 4
         ft.Divider(),
         ft.Text("Automobili", size=20),
